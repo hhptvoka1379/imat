@@ -47,10 +47,11 @@ honest about where it stands the whole way.
 | **your score band** | `+1.5` per `sure`, `−0.4` per `wrong`, `0` per `blank`, and *both ends* for `unsure` — that is the score range your own memory allows. |
 | **how sure can I be?** | Monte-Carlo, no model: takes real rows out of this pool, blurs them with *your* fill ratio and *your* share of `unsure`, reruns the whole search, and reports how often it lands on exactly one row and whether that row was the right one. The only number here that is measured rather than assumed. |
 
-Measured on the demo set (synthetic, 947 rows/sede, 40 of 60 cells filled, 25 % forgotten,
-30 % downgraded to *unsure*, 6 % misremembered): **87 % of the time you get exactly one row
-and it is the right one**, 95 % of the time it is in the top 3. Without the sede filter —
-18,000 rows — it is 73 %. The location filter is not cosmetic.
+Run it. On the synthetic demo set (947 rows/sede, 40 of 60 cells filled, 25 % forgotten,
+30 % downgraded to *unsure*, 6 % misremembered), 400 trials land on exactly one row and the
+right one **~85 %** of the time, top-3 ~95 %. Drop the sede filter — all 18,000 rows — and
+the same recall is unique ~73 % of the time. The location filter is not cosmetic. Those are
+400-sample figures, so ±3-4 points; `validate --trials 2000` if you want it tighter.
 
 ## 3 · your data
 
