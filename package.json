@@ -1,0 +1,14 @@
+{
+  "name": "imat-2026-results",
+  "private": true,
+  "type": "module",
+  "description": "IMAT 2026 anonymous results — in-browser finder (docs/) + tools",
+  "scripts": {
+    "test": "node tools/tests/core.test.mjs && node tools/tests/ui.test.mjs",
+    "test:core": "node tools/tests/core.test.mjs",
+    "test:ui": "node tools/tests/ui.test.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "^24.0.0"
+  }
+}

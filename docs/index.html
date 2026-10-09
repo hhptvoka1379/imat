@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>imat · find yourself in the anonymous results</title>
+  <meta name="description" content="Mark your 60 IMAT answers as sure / unsure / wrong / blank and find the one anonymous result vector that can only be you. Runs entirely in your browser.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='42' fill='none' stroke='%237d9b7e' stroke-width='9'/%3E%3Ccircle cx='50' cy='50' r='13' fill='%23c9a063'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="hero">
+  <div class="art" aria-hidden="true"></div>
+  <div class="inner">
+    <p class="eyebrow">IMAT 2026 · anonymous results</p>
+    <h1>find yourself in the results,<br>without telling anyone who you are.</h1>
+    <p class="lede">
+      Mark each of your 60 answers as <strong>sure</strong>, <strong>unsure</strong>,
+      <strong>wrong</strong> or <strong>blank</strong>. We recompute every score vector your
+      answer sheet can produce and look for it among the published anonymous results —
+      only at the location where you sat the test. If exactly one person matches,
+      that person is you.
+    </p>
+    <div class="status-line">
+      <span class="pill"><span class="live-dot"></span><span id="load-status">loading results…</span></span>
+      <span class="pill">everything stays in this tab</span>
+      <span class="pill">no accounts, no uploads</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- 1 · location ------------------------------------------------- -->
+  <section class="card" id="where-card">
+    <h2>where did you take the test?</h2>
+    <p class="hint">
+      Your match is looked up only inside this location, so “the only person with
+      that result vector” means exactly that — among the people in the same room list.
+    </p>
+    <label class="field-label" for="sede-select">test location</label>
+    <select id="sede-select">
+      <option value="">choose your location…</option>
+    </select>
+  </section>
+
+  <!-- 2 · answers --------------------------------------------------- -->
+  <section class="card" id="answers-card">
+    <h2>your 60 answers</h2>
+    <p class="hint">
+      <strong>sure</strong> = you’re confident it’s correct ·
+      <strong>unsure</strong> = you answered but don’t know ·
+      <strong>wrong</strong> = you know you got it wrong ·
+      <strong>blank</strong> = you left it empty.
+      Tip: keys <kbd>s</kbd> <kbd>u</kbd> <kbd>w</kbd> <kbd>b</kbd> work too, and move
+      you along automatically.
+    </p>
+
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="fill" id="progress-fill"></div></div>
+      <div class="progress-label" id="progress-label">0 / 60 marked</div>
+      <div class="range-preview" id="range-preview"></div>
+    </div>
+
+    <div id="sections"></div>
+
+    <div class="btn-row" style="margin-top: 18px;">
+      <button class="btn primary" id="check-btn" disabled>find me</button>
+      <button class="btn tiny" id="clear-btn">start over</button>
+      <button class="btn tiny" id="fill-unsure-btn">mark the rest unsure</button>
+    </div>
+
+    <details class="paste-details">
+      <summary>paste all 60 at once (letters or numbers)</summary>
+      <p class="hint" style="margin-top: 10px;">
+        One character per question, in section order (General Knowledge, Logical Reasoning,
+        Biology, Chemistry, Physics &amp; Math). Use <kbd>s</kbd>/<kbd>u</kbd>/<kbd>w</kbd>/<kbd>b</kbd>
+        or <kbd>1</kbd>..<kbd>4</kbd>. Spaces and commas are ignored.
+      </p>
+      <textarea id="paste-box" spellcheck="false" placeholder="SSUWB…"></textarea>
+      <div class="btn-row" style="margin-top: 10px;">
+        <button class="btn tiny" id="paste-apply">apply</button>
+        <button class="btn tiny" id="paste-export">copy my 60 letters</button>
+      </div>
+    </details>
+  </section>
+
+  <!-- 3 · verdict --------------------------------------------------- -->
+  <section class="card verdict idle" id="verdict-card">
+    <span class="verdict-tag" id="verdict-tag">waiting for you</span>
+    <div id="verdict-body">
+      <p class="hint" style="margin:0">
+        Pick your location, mark all 60 answers, and the verdict appears here — live,
+        on every change. Nothing leaves your browser.
+      </p>
+    </div>
+    <div id="disambiguate" hidden>
+      <div class="divider"></div>
+      <label class="field-label" for="code-filter">remember part of your bar code? type it here to narrow it down</label>
+      <input type="text" id="code-filter" placeholder="e.g. 5113 … 3515" autocomplete="off">
+    </div>
+  </section>
+
+  <!-- 4 · fuzzy search ---------------------------------------------- -->
+  <section class="card" id="search-card">
+    <h2>fuzzy search the whole dataset</h2>
+    <p class="hint">
+      Seat names, bar-code fragments and scores — typos welcome.
+      e.g. <em>bicoca</em>, <em>pavia 65.5</em>, <em>5113 3515</em>, <em>torino 73</em>.
+    </p>
+    <input type="text" id="search-input" placeholder="type to search 17,350 answer sheets…" autocomplete="off">
+    <div class="search-results" id="search-results"></div>
+  </section>
+
+</main>
+
+<footer>
+  <p>
+    data: official IMAT 2026 anonymous results published by MUR / CINECA
+    (17,350 answer sheets · 19 locations) · marking scheme +1.5 / −0.4 / 0
+  </p>
+  <p>
+    this page is a static site — push the folder to GitHub Pages and it just works.
+    matching runs in your browser on packed binary data. no server, no tracking.
+  </p>
+</footer>
+
+<script type="module" src="assets/app.js"></script>
+</body>
+</html>
