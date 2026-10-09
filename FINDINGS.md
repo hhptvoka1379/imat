@@ -99,3 +99,26 @@ from these files.
 * `scripts/find_pattern.py` — parser (with the row-completeness fix) + exact and
   fuzzy search; caches parsed rows to `work/scores.csv`.
 * `patterns/grid_full.txt`, `patterns/grid_63.2.txt` — the 60 marks (identical).
+
+## The two candidate rows, decided
+
+| | `955135117755115` | `551131517753135` |
+|---|---|---|
+| Scores | 4.5 · 2.2 · 34.5 · 13.0 · 9.3 = 63.5 | 4.1 · 4.1 · 34.5 · 12.7 · 13.1 = 68.5 |
+| L1 score distance | **1.1** — the minimum over all 18,368 rows, unique | 5.3 |
+| Grid cells that must be wrong | 6 | **3** |
+| Sections equal to the grid | 2 of 5 | **3 of 5** |
+
+`955135117755115`'s six errors nearly cancel in points (Chemistry needs
++1.5 and −1.2 = +0.3 net), which is why it wins on raw score distance while
+being wrong about twice as many cells. Its Chemistry score of 13.0 admits only
+one split — 10C/5W/**0 blanks** — while the grid records four Chemistry blanks
+(Q37, 38, 41, 45), so it is excluded unless those four blanks are the
+unreliable part of the transcription.
+
+Under a per-cell misread model, 3 cells beats 6 by 125,000× / 8,000× / 1,000×
+at p = 2% / 5% / 10%. `551131517753135` is the only Milano row at 3 cells
+(next tier: 4 cells, 2 rows; 16 rows sit at 6).
+
+**Exhaustive check:** no row in any of the 19 lists matches the grid on 4 of the
+5 sections; exactly 19 match on 3, and exactly one of those is in Milano.
