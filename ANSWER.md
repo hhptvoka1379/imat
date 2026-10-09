@@ -48,6 +48,34 @@ Physics & Maths identical); in `15.pdf` the four 63.2 rows are `551535135535333`
 
 ---
 
+### The 63.5 alternative: `15.pdf` bar code `955135117755115` (Milano, page 32)
+
+Worth separating out, because it is **the only row in all 18,368 with the vector
+4.5 / 2.2 / 34.5 / 13.0 / 9.3 = 63.5** — a unique exact hit on its own numbers.
+
+Against the sheet *as transcribed* (63.2) it is **6 cells** away (rank 94 of 18,362; 89 rows are
+closer; 6 rows inside `15.pdf` alone are closer), so it is not the closest match:
+
+| | sheet | `955135117755115` | cells that must change |
+|---|---|---|---|
+| General Knowledge | 3C 1W 0B = 4.1 | 3C 0W 1B = 4.5 | 1 (Q4 ✗ → blank, +0.4) |
+| Logical Reasoning | 2C 2W 1B = 2.2 | 2C 2W 1B = 2.2 | 0 |
+| Biology | 23C = 34.5 | 23C = 34.5 | 0 |
+| Chemistry | 9C 2W 4B = 12.7 | 10C 5W 0B = 13.0 | **4** (all blanks answered: 1 ✓ + 3 ✗, +0.3) |
+| Physics & Maths | 7C 2W 4B = 9.7 | 7C 3W 3B = 9.3 | 1 (one blank → ✗, −0.4) |
+| total | 63.2 | 63.5 | **6 of 60** (63.2 + 0.4 + 0.3 − 0.4 = 63.5) |
+
+So it is an all-or-nothing rival hypothesis, not a near miss: the two readings differ only in how
+the *empty-looking* cells are read.
+* If the sheet really is 44C / 7W / 9B = 63.2 (which is what the hand-written score on it says),
+  `733115117953111` wins at 2 cells and this row is 6 cells off.
+* If instead the four chemistry blanks (**Q37, Q38, Q41, Q45**) are actually answered — 1 ✓ and
+  3 ✗ — and Q4 is blank rather than ✗, the sheet is 45C / 10W / 5B = **63.5** and
+  `955135117755115` is the **unique exact match** in the whole corpus.
+
+The two things that settle it: the hand-written total on the sheet (**63.2 or 63.5?**) and whether
+Q37/Q38/Q41/Q45 are truly empty or carry faint marks.
+
 ## What the answer sheet says
 
 Transcription in `patterns/sheet.txt` (✓ correct, ✗ wrong, · blank), 60 questions:
