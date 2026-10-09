@@ -10,18 +10,23 @@ Reproduce:
 python3 scripts/find_pattern.py --file patterns/grid_full.txt --university 15 --university C6 --reparse
 ```
 
-## Parse integrity (audited)
+## Parse integrity (audited two independent ways)
 
-Every PDF is now checked with a hard invariant: *the number of numeric tokens in
-the file, minus headers, must equal 6 × the number of rows parsed*. All 19 files
-balance exactly.
+1. **Token invariant** — for every file, the numeric tokens (headers excluded)
+   must equal 6 × the rows parsed. All 19 files balance.
+2. **Coordinate rebuild** — every row is re-extracted independently by grouping
+   the PDF's words by baseline (y, 3-point tolerance) and reading the cells left
+   to right, then compared with the parser output. **18,368 / 18,368 rows match
+   on both bar code and the six scores; 0 misaligned.** For `15.pdf` and `C6.pdf`
+   specifically: 1,012/1,012 and 339/339 exact.
 
 An earlier version of the parser walked "bar code, then 6 numbers" and silently
 dropped a row whenever the bar-code cell was empty (first row of page 1 in
 `03, 08, 22, 26, 27, 31`) or was `*` (`MU.pdf`, 2 rows). Those **8 rows are now
-recovered**: the corpus is **18,368 rows**, not 18,360. Milano (`15.pdf`,
-1,012 rows) and Milano Bicocca (`C6.pdf`, 339 rows) were already complete and are
-unchanged by the fix.
+recovered**: the corpus is **18,368 rows**, not 18,360. Six rows have an empty
+bar-code cell in the source PDF and are reported as `(no code)`. Milano
+(`15.pdf`, 1,012 rows) and Milano Bicocca (`C6.pdf`, 339 rows) were already
+complete and are unchanged by the fix.
 
 ## Section model (derived, and cross-checked)
 

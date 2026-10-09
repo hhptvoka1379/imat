@@ -135,7 +135,8 @@ def parse_pdf(path: str) -> list[tuple[str, list[float]]]:
             if len(run) % 6:
                 raise ValueError(f"{path}: run of {len(run)} numbers at token {i}")
             for k, start in enumerate(range(0, len(run), 6)):
-                rows.append((last_code if k == 0 else "(blank)", run[start:start + 6]))
+                code = last_code if k == 0 else None
+                rows.append((code or "(no code)", run[start:start + 6]))
                 last_code = None
             i = j
             continue
