@@ -1,0 +1,15 @@
+{
+  "name": "imat-find-your-line",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Fuzzy search over the IMAT anonymous answer dataset. Static, no build step.",
+  "scripts": {
+    "serve": "python3 -m http.server 8080",
+    "test": "node tests/engine.test.js && node tests/ui.test.js",
+    "test:all": "node tests/engine.test.js && node tests/parity.js && node tests/ui.test.js",
+    "test:parity": "node tests/parity.js"
+  },
+  "devDependencies": {
+    "jsdom": "^24.0.0"
+  }
+}

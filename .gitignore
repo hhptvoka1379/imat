@@ -1,0 +1,7 @@
+# scratch + generated bulk data (the site reads web/data/imat.bin, which IS committed)
+/data/
+*.tmp.bin
+.imat_fuzzy.tmp.bin
+node_modules/
+.DS_Store
+*.log

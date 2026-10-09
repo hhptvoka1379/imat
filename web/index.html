@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IMAT · find your line</title>
+<meta name="description" content="Fuzzy-locate your row in the IMAT anonymous answer dataset. Everything runs in your browser: no server, no upload.">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0a0e13">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230a0e13'/%3E%3Cg fill='none' stroke='%236ee7b7' stroke-width='2.4'%3E%3Ccircle cx='16' cy='16' r='8.4'/%3E%3Cpath d='M22 22l5 5'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="aura" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow"><span class="dot"></span><span id="dsName">no dataset loaded</span></div>
+      <h1>find your <em>line</em></h1>
+      <p class="sub">Paint what you remember from the test — <b>sure</b>, <b>unsure</b>, <b>wrong</b>, <b>blank</b> —
+        pick the seat you sat in, and this finds the one row in the whole dataset that matches.
+        It is fuzzy on purpose: you do not remember everything, and you do not have to.</p>
+    </div>
+    <div class="top-right">
+      <button class="btn btn-sm" id="btnImport" title="Load your own CSV / TSV / .bin">load data</button>
+      <button class="btn btn-sm btn-ghost" id="btnTheme" title="dark / light">☾</button>
+    </div>
+  </header>
+
+  <main class="grid">
+    <!-- ---------------------------------------------------------- the deck -->
+    <section class="card">
+      <div class="toolbar">
+        <div class="brushes" role="group" aria-label="brush">
+          <button class="brush" data-brush="1" data-state="1" aria-pressed="true"><span class="sw"></span>sure</button>
+          <button class="brush" data-brush="2" data-state="2" aria-pressed="false"><span class="sw"></span>unsure</button>
+          <button class="brush" data-brush="3" data-state="3" aria-pressed="false"><span class="sw"></span>wrong</button>
+          <button class="brush" data-brush="4" data-state="4" aria-pressed="false"><span class="sw"></span>blank</button>
+          <button class="brush" data-brush="0" data-state="0" aria-pressed="false"><span class="sw"></span>erase</button>
+        </div>
+        <span class="spacer"></span>
+        <span class="filled">filled <b id="filledN">0</b>/<span id="filledT">60</span></span>
+        <button class="btn btn-sm btn-ghost" id="btnUndo" title="undo (z)">undo</button>
+        <button class="btn btn-sm btn-ghost" id="btnClear" title="clear everything">clear</button>
+      </div>
+
+      <div id="deck" class="deck">
+        <div class="skel"><span class="spin"></span><span id="loadMsg">warming up…</span></div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-h"><span>or type it</span><i></i></div>
+        <textarea class="spec" id="spec" rows="2" spellcheck="false"
+          placeholder="1-14=sure, 15-22=unsure, 23=wrong, 24=blank&#10;or packed: s s u w b … (one char per question, from q1)"></textarea>
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+          <button class="btn btn-sm" id="btnApply">apply</button>
+          <button class="btn btn-sm btn-ghost" id="btnApplyAdd">merge into deck</button>
+          <span class="spacer"></span>
+          <span class="hint num" style="align-self:center">s=sure u=unsure w=wrong b=blank ?=skip</span>
+        </div>
+      </div>
+
+      <div class="sec" style="padding-bottom:16px">
+        <details class="help">
+          <summary>keys &amp; how this works</summary>
+          <div class="card-b">
+            <table class="kbd">
+              <tr><td><kbd>s</kbd> <kbd>u</kbd> <kbd>w</kbd> <kbd>b</kbd></td><td>paint the question under the cursor</td></tr>
+              <tr><td><kbd>←↑↓→</kbd></td><td>move the cursor · <kbd>Backspace</kbd> erases it</td></tr>
+              <tr><td><kbd>0</kbd>–<kbd>9</kbd> then <kbd>↵</kbd></td><td>jump to a question number</td></tr>
+              <tr><td>drag</td><td>paint a run of questions with the current brush</td></tr>
+              <tr><td><kbd>z</kbd></td><td>undo the last batch · <kbd>Esc</kbd> closes panels</td></tr>
+            </table>
+            <p style="margin:10px 0 0;color:var(--ink-dim)">
+              Every row in the dataset is a 60-cell pattern of <i>correct / wrong / blank</i>. You paint a
+              pattern of <i>sure / unsure / wrong / blank</i>. A cost table scores how well the two agree
+              — 0 when they match, ~6 when one of them clearly contradicts the other, cheap when you said
+              <i>unsure</i> and the row says you answered either way. Cheapest row wins. Because
+              <i>unsure</i> only costs half a point, guessing rarely hurts you; it just widens the field.
+              Nothing is uploaded: the whole dataset lives in this tab and the search is a few typed-array
+              passes over it.
+            </p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------- the match panel -->
+    <aside>
+      <div class="card match">
+        <div class="card-h">
+          <h2>who is this?</h2>
+          <span class="hint" id="msChip">–</span>
+        </div>
+        <div class="card-b">
+          <label class="locate">
+            <input id="sede" list="sedilist" autocomplete="off" spellcheck="false"
+                   placeholder="where did you sit? (fuzzy: milano bic)”" aria-label="test centre">
+            <datalist id="sedilist"></datalist>
+          </label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px" id="sedeChips"></div>
+          <p class="pool" id="poolLine">pick a seat to narrow the field — the more specific you are, the more certain the hit.</p>
+
+          <div class="verdict" id="verdict" data-tone="muted"><span class="pip"></span><span id="verdictText">waiting for a dataset</span></div>
+
+          <div class="meters">
+            <div class="meter"><span>best cost</span><b id="mBest">–</b><small id="mGap">lower = better</small></div>
+            <div class="meter"><span>indistinguishable</span><b id="mAmb">–</b><small>rows within ±2.0</small></div>
+            <div class="meter"><span>pattern entropy</span><b id="mBits">–</b><small id="mColl">–</small></div>
+            <div class="meter"><span>your score band</span><b id="mScore">–</b><small id="mScoreSub">+1.5 right / −0.4 wrong</small></div>
+          </div>
+          <div class="bar" title="how alone you are in this pool"><i id="confBar"></i></div>
+
+          <ol class="hits" id="hits"></ol>
+          <div id="detail"></div>
+
+          <div class="rows" id="statLine"></div>
+
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px">
+            <button class="btn btn-sm" id="btnEstimate" title="replay the search on real rows from this pool">how sure can I be?</button>
+            <button class="btn btn-sm btn-ghost" id="btnShare">copy pattern</button>
+            <button class="btn btn-sm btn-ghost" id="btnExport" title="save the loaded table as a packed .bin for the site">bake .bin</button>
+          </div>
+          <p class="pool" id="estLine" style="margin-top:10px"></p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><h2>privacy</h2></div>
+        <div class="card-b">
+          <p style="margin:0;color:var(--ink-dim);font-size:13px">
+            Static page. No backend, no analytics, no fonts from anywhere, no cookies. Your pattern is kept in
+            <code>localStorage</code> on this device only. A dataset you drop in is parsed in a worker in this tab
+            and never leaves it — it is not committed to the repo and not sent anywhere.
+            Only use data you are allowed to look at, and be decent about whose line you are finding.
+          </p>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <p class="foot">
+    <span class="num" id="footStat">–</span>
+    <span>·</span><span>engine <span class="num">v1</span></span>
+    <span>·</span><a href="https://github.com/hhptvoka1379/imat" rel="noopener">source</a>
+    <span>·</span><span>demo blob is synthetic — drop your own CSV over it</span>
+  </p>
+</div>
+
+<div class="drop" id="drop"><span>drop a .csv / .tsv / .bin — it stays on this device</span></div>
+<div id="toasts" aria-live="polite"></div>
+<input type="file" id="file" accept=".csv,.tsv,.txt,.bin" hidden>
+
+<script src="engine.js"></script>
+<script src="core.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

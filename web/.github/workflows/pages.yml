@@ -1,0 +1,28 @@
+# Only used when this folder is the ROOT of its own repo (which is the plan:
+# `git init web && git remote add ... && git push`), deploying to GitHub Pages.
+name: pages
+on:
+  push: { branches: [main] }
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # the data blob is plain bytes; nothing to compile. if you keep your dataset
+      # outside git, drop it in via a secret/artifact here instead of committing it.
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: . }
+      - id: deployment
+        uses: actions/deploy-pages@v4
