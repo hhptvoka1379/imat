@@ -87,35 +87,58 @@ HEADER_TOKENS = {
 }
 NUM_RE = re.compile(r"^-?\d+(?:\.\d+)?$")
 BARCODE_RE = re.compile(r"^\d{10,20}$")
-NOISE_RE = re.compile(r"^(?:2026|Pag\.\s*\d+|\*|.*Punteggio in attesa.*)$")
+NOISE_RE = re.compile(r"^(?:2026|2027|Pag\.\s*\d+|.*Punteggio in attesa.*)$")
 
 
 # --------------------------------------------------------------------------- #
 # parsing
 # --------------------------------------------------------------------------- #
 def parse_pdf(path: str) -> list[tuple[str, list[float]]]:
-    """Return [(barcode, [s1..s5, total])] for one published list."""
+    """Return [(barcode, [s1..s5, total])] for one published list.
+
+    Rows are recovered from runs of numbers rather than by walking
+    barcode-then-6-numbers: in the first row of some page-1 tables the bar-code
+    cell is empty, and in MU.pdf some codes are "*". Reading runs of numbers
+    (6 per row, adjacent rows merge into a run of 12 when a code is missing)
+    keeps those rows instead of silently dropping them.
+    """
     doc = pymupdf.open(path)
     tokens: list[str] = []
     for page in doc:
         tokens += [t.strip() for t in page.get_text().split("\n") if t.strip()]
 
-    rows, i, n = [], 0, len(tokens)
+    kind = []
+    for t in tokens:
+        if t in HEADER_TOKENS or NOISE_RE.match(t):
+            kind.append("noise")
+        elif BARCODE_RE.match(t) and len(t) >= 10:
+            kind.append("barcode")
+        elif NUM_RE.match(t):
+            kind.append("num")
+        elif t == "*":
+            kind.append("star")
+        else:
+            kind.append("other")
+
+    rows: list[tuple[str, list[float]]] = []
+    last_code, i, n = None, 0, len(tokens)
     while i < n:
-        tok = tokens[i]
-        if tok in HEADER_TOKENS or NOISE_RE.match(tok):
+        if kind[i] in ("barcode", "star"):
+            last_code = tokens[i]
             i += 1
             continue
-        if BARCODE_RE.match(tok) or tok == "*":
-            vals: list[float] = []
-            j = i + 1
-            while j < n and len(vals) < 6 and NUM_RE.match(tokens[j]):
-                vals.append(float(tokens[j]))
+        if kind[i] == "num":
+            j = i
+            while j < n and kind[j] == "num":
                 j += 1
-            if len(vals) == 6:
-                rows.append((tok, vals))
-                i = j
-                continue
+            run = [float(t) for t in tokens[i:j]]
+            if len(run) % 6:
+                raise ValueError(f"{path}: run of {len(run)} numbers at token {i}")
+            for k, start in enumerate(range(0, len(run), 6)):
+                rows.append((last_code if k == 0 else "(blank)", run[start:start + 6]))
+                last_code = None
+            i = j
+            continue
         i += 1
     return rows
 

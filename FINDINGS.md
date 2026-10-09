@@ -1,108 +1,96 @@
 # Fuzzy search of a hand-written 60-question grid against the IMAT 2026 lists
 
-**Grid:** 44 correct / 7 wrong / 9 blank → `44 × 1.5 − 7 × 0.4 = 63.2` (matches the
-hand-written "Punteggio 63.2", so the transcription is internally consistent).
+**Grid:** 44 correct / 7 wrong / 9 blank → `44 × 1.5 − 7 × 0.4 = 63.2`, which
+matches the hand-written "Punteggio 63.2", so the transcription is internally
+consistent.
 
-**Data:** all 19 published lists in this repo — 18,360 rows, every barcode unique
-(no candidate appears twice, so the lists are disjoint).
-Milano = `15.pdf` (1,012 rows), Milano Bicocca (Bergamo) = `C6.pdf` (339 rows),
-`MU.pdf` = "Sedi estere" (9,658 rows).
-
-Reproduce with:
+Reproduce:
 
 ```bash
-python3 scripts/find_pattern.py --file patterns/grid_63.2.txt --university 15 --top 12
+python3 scripts/find_pattern.py --file patterns/grid_full.txt --university 15 --university C6 --reparse
 ```
 
-## Section model (verified from the data, not assumed)
+## Parse integrity (audited)
 
-The results page legend gives the section names; the sizes come from the maximum
-value seen in each column over all 18,360 rows (`max = 1.5 × n`), and every
-observed value is reachable with that `n`:
+Every PDF is now checked with a hard invariant: *the number of numeric tokens in
+the file, minus headers, must equal 6 × the number of rows parsed*. All 19 files
+balance exactly.
 
-| Section | Questions | Max seen | n |
+An earlier version of the parser walked "bar code, then 6 numbers" and silently
+dropped a row whenever the bar-code cell was empty (first row of page 1 in
+`03, 08, 22, 26, 27, 31`) or was `*` (`MU.pdf`, 2 rows). Those **8 rows are now
+recovered**: the corpus is **18,368 rows**, not 18,360. Milano (`15.pdf`,
+1,012 rows) and Milano Bicocca (`C6.pdf`, 339 rows) were already complete and are
+unchanged by the fix.
+
+## Section model (derived, and cross-checked)
+
+Column maxima over all 18,368 rows are 6.0 / 7.5 / 34.5 / 22.5 / 19.5 →
+4 / 5 / 23 / 15 / 13 questions = 60. Column minima are −1.6 / −2.0 / −8.8 /
+−6.0 / −5.2 = −0.4 × (4, 5, 22, 15, 13), confirming −0.4 for a wrong answer and
+0 for a blank. Score 1 takes exactly 15 distinct values, which is precisely the
+attainable set for a 4-question section; Score 2 takes 21 = the attainable set
+for 5. Legend from the CINECA page: General Knowledge, Logical Reasoning,
+Biology, Chemistry, Physics & Mathematics.
+
+Folding the grid through it:
+
+| Section | Questions | C/W/B | Score |
 |---|---|---|---|
-| Score 1 — General Knowledge | 1–4 | 6.0 | 4 |
-| Score 2 — Logical Reasoning | 5–9 | 7.5 | 5 |
-| Score 3 — Biology | 10–32 | 34.5 | 23 |
-| Score 4 — Chemistry | 33–47 | 22.5 | 15 |
-| Score 5 — Physics & Mathematics | 48–60 | 19.5 | 13 |
-
-4 + 5 + 23 + 15 + 13 = 60 ✓. Folding the grid through this model gives
-
-| Section | C/W/B | Score |
-|---|---|---|
-| General Knowledge | 3/1/0 | 4.1 |
-| Logical Reasoning | 2/2/1 | 2.2 |
-| Biology | 23/0/0 | 34.5 |
-| Chemistry | 9/2/4 | 12.7 |
-| Physics & Maths | 7/2/4 | 9.7 |
-| **Total** | 44/7/9 | **63.2** |
+| General Knowledge | 1–4 | 3/1/0 | 4.1 |
+| Logical Reasoning | 5–9 | 2/2/1 | 2.2 |
+| Biology | 10–32 | 23/0/0 | 34.5 |
+| Chemistry | 33–47 | 9/2/4 | 12.7 |
+| Physics & Maths | 48–60 | 7/2/4 | 9.7 |
+| **Total** | | 44/7/9 | **63.2** |
 
 ## Result
 
-**The exact vector `4.1 / 2.2 / 34.5 / 12.7 / 9.7` appears in none of the 18,360
-rows.** No row anywhere matches 4 of the 5 sections; only 19 rows in the whole
-corpus match 3 of 5 — and exactly one of those is in Milano.
+**No row in the corpus has the vector `4.1 / 2.2 / 34.5 / 12.7 / 9.7`.**
+No row matches 4 of the 5 sections; 19 rows match 3 of 5, one of them in Milano.
 
 **Best match in Milano (`15.pdf`), and the strongest candidate overall:**
 
 | | |
 |---|---|
-| Barcode | **551131517753135** |
+| Bar code | **551131517753135** |
 | Scores | 4.1 · **4.1** · 34.5 · 12.7 · **13.1** = **68.5** |
 | Implied marks | GK 3C/1W/0B · LR **3C/1W/1B** · Bio 23C/0W/0B · Chem 9C/2W/4B · P&M **9C/1W/3B** |
 | Distance from the grid | 3 cells |
 
-Score 1, Score 3 and Score 4 are *identical* to the grid. It is the **only** row
-of the 1,012 in Milano with `Score 1 = 4.1` **and** `Score 3 = 34.5` **and**
-`Score 4 = 12.7` (63 rows have a perfect biology section; 8 of those also have
-`Score 1 = 4.1`; only this one adds `Score 4 = 12.7`).
+Score 1, 3 and 4 are identical to the grid. It is the **only** row of the 1,012 in
+Milano with `Score 1 = 4.1` and `Score 3 = 34.5` and `Score 4 = 12.7` (63 rows
+have a perfect biology section; 8 of those also have `Score 1 = 4.1`).
 
-The three cells that would have to be misread, all in the two mismatching
-sections:
+The three cells that would have to be misread:
+* one of the two crosses in **Q5–Q9** is a tick (+1.9)
+* in **Q48–Q60**: one blank → tick (+1.5), one cross → tick (+1.9)
 
-* one of the two crosses in **Q5–Q9** (Logical Reasoning) is actually a tick → +1.9
-* in **Q48–Q60** (Physics & Maths): one blank → tick (+1.5) and one cross → tick (+1.9)
+63.2 + 1.9 + 1.5 + 1.9 = **68.5**. Rank in Milano's list: 104th (63.2 would be 224th).
 
-63.2 + 1.9 + 1.5 + 1.9 = **68.5** ✓ — the row is reachable from the grid with
-three single-cell corrections and nothing else.
+## Robustness checks that did not change the answer
 
-## Runners-up
+* **All 120 orderings** of the five section blocks over questions 1–60: 0 exact
+  hits; the same bar code still wins.
+* **Grid shifted** by −3…+3 questions: shift 0 remains the best fit for Milano.
+* **Alternative section models** — 7/4/23/15/11 (the classic pre-2025 split),
+  4/7/23/15/11, 5/4/23/15/13, 7/5/23/15/10, 2/7/23/15/13 — every one folds to a
+  different vector and **none** has an exact hit in any list. So a "match" found
+  under a different model is not coming from these files either.
 
-Milano, next best (cells off / exact sections / scores):
+## Why an exact answer-level match is impossible here
 
-| Cells | Exact | Barcode | Scores |
-|---|---|---|---|
-| 4 | 2/5 | 953355317713115 | 4.1 · 6.0 · 34.5 · 12.3 · 11.2 = 68.1 |
-| 4 | 2/5 | 533513115713111 | 4.1 · 2.2 · 32.6 · 11.2 · 7.4 = 57.5 |
-| 6 | 2/5 | 955135117755115 | 4.5 · 2.2 · 34.5 · 13.0 · 9.3 = 63.5 |
-
-Closest anywhere in the corpus is a *Campania "L. Vanvitelli"* row,
-`733115117953111` (4.1 · 4.1 · 34.5 · 12.7 · 10.1 = 65.5), 2 cells off — but it
-is not in a Milan list.
-
-## The four Milano rows that total exactly 63.2
-
-None is remotely close to the grid's section split (8–13 cells off), which argues
-against the total being right and the split wrong:
-
-| Barcode | Scores | Cells off |
-|---|---|---|
-| 551535135535333 | 1.5 · 2.6 · 34.5 · 15.3 · 9.3 = 63.2 | 8 |
-| 951555157935531 | 1.1 · 2.6 · 31.5 · 15.7 · 12.3 = 63.2 | 10 |
-| 751111335733331 | 6.0 · 7.5 · 34.5 · 11.5 · 3.7 = 63.2 | 11 |
-| 713111117713315 | 3.0 · 1.1 · 33.0 · 8.5 · 17.6 = 63.2 | 13 |
-
-## Position in the list (approximate)
-
-Sorting Milano's 1,012 rows by total: 63.2 → 224th; 68.5 → 104th.
-Sorting all 18,360 rows together: 63.2 → 3,880th; 68.5 → 2,020th.
-*The combined figure assumes the 19 lists together are the whole cohort — that
-is not verified from inside this repo.*
+The published lists contain **six numbers per candidate** — five section scores
+and a total. They contain no per-question data and no answer key. The finest
+comparison available against a 60-cell grid is therefore those five numbers.
+Anything described as "the same answers" is either a match on the five section
+scores (the row above), a match on the total alone (Milano has exactly four rows
+totalling 63.2: `551535135535333`, `713111117713315`, `751111335733331`,
+`951555157935531` — 8 to 13 cells away from this grid), or it is not verifiable
+from these files.
 
 ## Files
 
-* `scripts/find_pattern.py` — parser + exact/fuzzy search (auto-detects section
-  sizes, caches parsed rows to `work/scores.csv`).
-* `patterns/grid_63.2.txt` — the 60 marks of the grid.
+* `scripts/find_pattern.py` — parser (with the row-completeness fix) + exact and
+  fuzzy search; caches parsed rows to `work/scores.csv`.
+* `patterns/grid_full.txt`, `patterns/grid_63.2.txt` — the 60 marks (identical).
